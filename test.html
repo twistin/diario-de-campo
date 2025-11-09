@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Firebase Connection Test</title>
+</head>
+<body>
+    <h1>Firebase Firestore Connection Test</h1>
+    <p>Abre las herramientas de desarrollador (Inspeccionar -> Consola) y luego haz clic en el botón.</p>
+    <button id="runTest">Ejecutar Prueba de Conexión</button>
+    <hr>
+    <h2>Estado:</h2>
+    <div id="status" style="font-family: monospace; white-space: pre-wrap;">Esperando para iniciar la prueba...</div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Usando la configuración exacta de tu archivo para la prueba.
+        const firebaseConfig = {
+          apiKey: "AIzaSyDBwoKiIWqSSYEiqQ0E7GaNfF-ySXCX-38",
+          authDomain: "diario-de-campo-f0747.firebaseapp.com",
+          projectId: "diario-de-campo-f0747",
+          storageBucket: "diario-de-campo-f0747.firebasestorage.app",
+          messagingSenderId: "582685983985",
+          appId: "1:582685983985:web:bb7a296e9e1a5cb8d49550",
+          measurementId: "G-B5SC3MBQ2Y"
+        };
+
+        const statusDiv = document.getElementById('status');
+        const testButton = document.getElementById('runTest');
+
+        testButton.onclick = async () => {
+            statusDiv.innerHTML = "Iniciando prueba...\n";
+            console.log("Iniciando prueba...");
+
+            try {
+                statusDiv.innerHTML += "Inicializando Firebase...\n";
+                console.log("Inicializando Firebase...");
+                const app = initializeApp(firebaseConfig);
+                const db = getFirestore(app);
+                statusDiv.innerHTML += "Firebase Inicializado.\n";
+                console.log("Firebase Inicializado.");
+
+                statusDiv.innerHTML += "Intentando escribir en Firestore...\n";
+                console.log("Intentando escribir en Firestore...");
+                
+                // Intenta escribir un documento en una colección de prueba
+                const testDocRef = doc(db, "test_collection", "test_doc_" + Date.now());
+                await setDoc(testDocRef, {
+                    timestamp: serverTimestamp(),
+                    message: "Hello, Firestore!"
+                });
+
+                statusDiv.innerHTML += "\n<b>¡ÉXITO!</b> Se ha escrito el documento en Firestore.";
+                console.log("¡ÉXITO! Se ha escrito el documento en Firestore.");
+
+            } catch (error) {
+                statusDiv.innerHTML += "\n<b>ERROR:</b> " + error.message + "\n";
+                statusDiv.innerHTML += "Código de error: " + error.code;
+                console.error("Se ha capturado un error:", error);
+                console.error("Código de error:", error.code);
+                console.error("Nombre del error:", error.name);
+            }
+        };
+    </script>
+</body>
+</html>
