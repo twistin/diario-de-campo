@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diario de Campo Profesional</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Inter Font -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        /* Estilo para el botón de cargar/guardar */
+        .loading-ring {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            width: 1rem;
+            height: 1rem;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .tab-content.hidden {
+            display: none;
+        }
+
+        .activity-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: #f9fafb;
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            border-left: 4px solid #4f46e5;
+            /* Color por defecto */
+        }
+
+        .interview-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem;
+            background-color: #f0f9ff;
+            /* Fondo azul claro */
+            border-radius: 0.5rem;
+            margin-bottom: 0.25rem;
+            border-left: 4px solid #3b82f6;
+            /* Color azul para Social */
+        }
+
+        .interview-formal {
+            border-left-color: #ef4444;
+            /* Rojo para Formal */
+        }
+
+        .interview-informal {
+            border-left-color: #10b981;
+            /* Verde para Informal */
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+
+    <div id="app" class="max-w-4xl mx-auto p-4 md:p-8">
+        <header class="mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 border-b-4 border-indigo-600 pb-2">
+                Diario de Campo Estructurado
+            </h1>
+            <p class="text-gray-600 mt-1">
+                Música, Identidad y Migración. <span id="user-info" class="font-medium text-sm text-indigo-500"></span>
+            </p>
+        </header>
+
+        <!-- Sección de Creación de Nueva Entrada -->
+        <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Nueva Observación de Campo</h2>
+            <form id="entry-form">
+                <!-- Campos Iniciales (Título, Ubicación y Geolocalización) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Título / Evento</label>
+                        <input type="text" id="title" required
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label for="location" class="block text-sm font-medium text-gray-700">Ubicación (Lugar y
+                            Ciudad)</label>
+                        <input type="text" id="location" required
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500">
+                    </div>
+                </div>
+
+                <!-- Nuevo campo de Geolocalización -->
+                <div class="mb-4">
+                    <label for="geolocation" class="block text-sm font-medium text-gray-700">
+                        Geolocalización (Latitud, Longitud)
+                    </label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="geolocation" placeholder="Esperando coordenadas..." readonly
+                            class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border bg-gray-50 focus:outline-none">
+                        <button type="button" id="get-location-button"
+                            class="mt-1 px-3 py-1 bg-green-500 text-white rounded-lg shadow hover:bg-green-600 text-sm whitespace-nowrap transition duration-150 ease-in-out">
+                            Obtener
+                        </button>
+                    </div>
+                    <p id="location-status" class="text-xs mt-1 text-gray-500">Haga clic en 'Obtener' para registrar la
+                        ubicación actual.</p>
+                </div>
+
+                <!-- Navegación por Pestañas del Plan de Observación -->
+                <div class="mb-4 border-b border-gray-200">
+                    <nav class="flex space-x-2 overflow-x-auto" aria-label="Tabs">
+                        <button type="button" data-tab="context"
+                            class="tab-button py-2 px-3 text-sm font-medium text-center rounded-t-lg border-b-2 border-indigo-600 text-indigo-600 transition duration-150 ease-in-out">
+                            1. Contexto General
+                        </button>
+                        <button type="button" data-tab="etno"
+                            class="tab-button py-2 px-3 text-sm font-medium text-center rounded-t-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-150 ease-in-out">
+                            2. Etnomusicología
+                        </button>
+                        <button type="button" data-tab="social"
+                            class="tab-button py-2 px-3 text-sm font-medium text-center rounded-t-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-150 ease-in-out">
+                            3. Interacciones Sociales
+                        </button>
+                        <button type="button" data-tab="registro"
+                            class="tab-button py-2 px-3 text-sm font-medium text-center rounded-t-lg border-b-2 border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 transition duration-150 ease-in-out">
+                            4. Log / Reflexión
+                        </button>
+                    </nav>
+                </div>
+
+                <!-- Contenido de las Pestañas (Basado en el Plan) -->
+                <div id="tab-container">
+
+                    <!-- Pestaña 1: Contexto General (Inicialmente visible) -->
+                    <div id="tab-context" class="tab-content space-y-4">
+                        <h3 class="text-lg font-semibold text-gray-700">1. Contexto General y Social</h3>
+
+                        <div>
+                            <label for="context_spatial" class="block text-sm font-medium text-gray-700">Espacio y
+                                Distribución (Ubicación de escenarios, actividades religiosas/festivas)</label>
+                            <textarea id="context_spatial" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="context_demography" class="block text-sm font-medium text-gray-700">Demografía y
+                                Oleadas Migratorias (Edades, grupos, tipos de migrantes)</label>
+                            <textarea id="context_demography" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="context_social" class="block text-sm font-medium text-gray-700">Interacciones
+                                Sociales y Símbolos (Lengua, dialectos, banderas, emociones)</label>
+                            <textarea id="context_social" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña 2: Etnomusicología (Inicialmente oculta) -->
+                    <div id="tab-etno" class="tab-content space-y-4 hidden">
+                        <h3 class="text-lg font-semibold text-gray-700">2. Enfoque Etnomusicológico: La Música en la
+                            Acción</h3>
+
+                        <div>
+                            <label for="etno_repertoire" class="block text-sm font-medium text-gray-700">Repertorio y
+                                Géneros (Gaita, Vallenato, Salsa. Canciones recurrentes)</label>
+                            <textarea id="etno_repertoire" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="etno_analysis" class="block text-sm font-medium text-gray-700">Análisis de
+                                Interpretación (Instrumentación, estilo de canto, letras sobre migración)</label>
+                            <textarea id="etno_analysis" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+
+                        <div>
+                            <label for="etno_function" class="block text-sm font-medium text-gray-700">Función de la
+                                Música (Momentos de uso, ¿símbolo de identidad/pertenencia?)</label>
+                            <textarea id="etno_function" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña 3: Interacciones Sociales (Entrevistas) -->
+                    <div id="tab-social" class="tab-content space-y-4 hidden">
+                        <h3 class="text-lg font-semibold text-gray-700">3. Interacciones Sociales y Citas</h3>
+
+                        <!-- Sistema de Log de Entrevistas -->
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h4 class="font-medium text-sm text-gray-700 mb-3 border-b pb-2">Registro de Conversaciones
+                                (Citas/Notas)</h4>
+
+                            <!-- Primera Fila: Hora y Tipo -->
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-2">
+                                <div class="col-span-1">
+                                    <label for="interview_time"
+                                        class="block text-xs font-medium text-gray-700">Hora</label>
+                                    <input type="time" id="interview_time"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="interview_type"
+                                        class="block text-xs font-medium text-gray-700">Tipo</label>
+                                    <select id="interview_type"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm bg-white">
+                                        <option value="Formal">Formal</option>
+                                        <option value="Informal">Informal (Casual)</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="interview_informant_role"
+                                        class="block text-xs font-medium text-gray-700">Rol en el Evento (Músico,
+                                        Asistente, etc.)</label>
+                                    <input type="text" id="interview_informant_role"
+                                        placeholder="Ej: Músico G.Z. / Organizador"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                            </div>
+
+                            <!-- Segunda Fila: Perfil del Informante -->
+                            <div class="grid grid-cols-4 gap-2 mb-2">
+                                <div class="col-span-1">
+                                    <label for="interview_age"
+                                        class="block text-xs font-medium text-gray-700">Edad</label>
+                                    <input type="number" id="interview_age" placeholder="Ej: 35"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                                <div class="col-span-1">
+                                    <label for="interview_profession"
+                                        class="block text-xs font-medium text-gray-700">Profesión/Ocupación</label>
+                                    <input type="text" id="interview_profession"
+                                        placeholder="Ej: Ingeniero / Estudiante"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="interview_region"
+                                        class="block text-xs font-medium text-gray-700">Región/Estado de Origen
+                                        (Vzla)</label>
+                                    <input type="text" id="interview_region" placeholder="Ej: Zulia / Caracas / Táchira"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                            </div>
+
+
+                            <label for="interview_quote" class="block text-xs font-medium text-gray-700">Cita o Resumen
+                                de la Conversación</label>
+                            <input type="text" id="interview_quote"
+                                placeholder="Ej: 'La gaita aquí es un grito de nostalgia'"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+
+                            <button type="button" id="add-interview-button"
+                                class="mt-3 w-full py-1 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                                Añadir Conversación al Log
+                            </button>
+                            <input type="hidden" id="interview_log_json" value="[]">
+
+                            <!-- Contenedor del Log en Vivo -->
+                            <div id="interview-log-container" class="mt-4 max-h-40 overflow-y-auto space-y-1">
+                                <p class="text-center text-xs text-gray-400" id="empty-interview-log-message">El log de
+                                    interacciones está vacío.</p>
+                            </div>
+                        </div>
+                        <!-- Fin Sistema de Log de Entrevistas -->
+
+                        <!-- Campo Adicional de Reflexión Social -->
+                        <div class="pt-4 border-t border-gray-200">
+                            <label for="social_reflection" class="block text-sm font-medium text-gray-700">Análisis y
+                                Reflexión Social (Uso de idioma, gestos, dinámicas de grupo)</label>
+                            <textarea id="social_reflection" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Pestaña 4: Registro y Tags (Inicialmente oculta) -->
+                    <div id="tab-registro" class="tab-content space-y-4 hidden">
+                        <h3 class="text-lg font-semibold text-gray-700">4. Log de Actividades y Clasificación</h3>
+
+                        <!-- Clasificación de Tono y Temática (NUEVO) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="mood_classification" class="block text-sm font-medium text-gray-700">Tono
+                                    Dominante de la Observación</label>
+                                <select id="mood_classification"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm bg-white focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="Nostálgico">Nostálgico / Melancólico</option>
+                                    <option value="Festivo">Festivo / Comunitario</option>
+                                    <option value="Religioso">Religioso / Devocional</option>
+                                    <option value="Crítico">Crítico / Social</option>
+                                    <option value="Neutral">Neutral / Descriptivo</option>
+                                    <option value="Mixto">Mixto</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="theme_classification"
+                                    class="block text-sm font-medium text-gray-700">Temática Primaria del Evento</label>
+                                <select id="theme_classification"
+                                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm bg-white focus:ring-indigo-500 focus:border-indigo-500">
+                                    <option value="Gaita_Zuliana">Gaita Zuliana</option>
+                                    <option value="Diáspora">Diáspora y Reencuentro</option>
+                                    <option value="Sincretismo">Sincretismo Religioso/Cultural</option>
+                                    <option value="Comercio">Comercio / Emprendimiento</option>
+                                    <option value="Política">Política / Crítica Social</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+                        <hr class="my-4 border-gray-200">
+
+                        <!-- Sistema de Log de Actividades -->
+                        <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h4 class="font-medium text-sm text-gray-700 mb-3 border-b pb-2">Registro Cronológico de
+                                Eventos del Acto</h4>
+                            <div class="grid grid-cols-5 gap-2 items-end">
+                                <div class="col-span-1">
+                                    <label for="activity_time"
+                                        class="block text-xs font-medium text-gray-700">Hora</label>
+                                    <input type="time" id="activity_time"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="activity_type"
+                                        class="block text-xs font-medium text-gray-700">Tipo</label>
+                                    <select id="activity_type"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm bg-white">
+                                        <option value="Musical">Musical (Gaita, DJ)</option>
+                                        <option value="Religioso">Religioso (Misa, Procesión)</option>
+                                        <option value="Culinario">Culinario (Comida, Bebida)</option>
+                                        <option value="Social">Social (Baile, Reunión)</option>
+                                        <option value="Mercado">Mercado/Ventas</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                </div>
+                                <div class="col-span-2">
+                                    <label for="activity_description"
+                                        class="block text-xs font-medium text-gray-700">Descripción</label>
+                                    <input type="text" id="activity_description"
+                                        placeholder="Ej: Gaita 'Maracaibo de Fiesta'"
+                                        class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border text-sm">
+                                </div>
+                            </div>
+                            <button type="button" id="add-activity-button"
+                                class="mt-3 w-full py-1 text-sm bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition">
+                                Añadir al Log
+                            </button>
+                            <input type="hidden" id="activity_log_json" value="[]">
+
+                            <!-- Contenedor del Log en Vivo -->
+                            <div id="activity-log-container" class="mt-4 max-h-40 overflow-y-auto space-y-1">
+                                <p class="text-center text-xs text-gray-400" id="empty-log-message">El log de
+                                    actividades está vacío.</p>
+                            </div>
+                        </div>
+                        <!-- Fin Sistema de Log de Actividades -->
+
+                        <div>
+                            <label for="tags" class="block text-sm font-medium text-gray-700">Etiquetas Clave (separadas
+                                por coma)</label>
+                            <input type="text" id="tags" placeholder="Ej: Gaita, Chinita, Nostalgia, Zulia"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500">
+                        </div>
+
+                        <div>
+                            <label for="notes_personal" class="block text-sm font-medium text-gray-700">Reflexión
+                                Personal / Metodológica</label>
+                            <textarea id="notes_personal" rows="3"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+
+                        <div class="pt-4">
+                            <label class="block text-sm font-medium text-gray-700">Registro
+                                (Fotográfico/Videográfico/Audio)</label>
+                            <p class="text-xs text-gray-500 mt-1">Usa este campo para registrar los nombres de los
+                                archivos externos generados (e.g., 'Entrevista_Juan_20251108.wav').</p>
+                            <textarea id="notes_media" rows="2"
+                                class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="save-button"
+                    class="w-full inline-flex justify-center items-center py-3 border border-transparent rounded-lg shadow-sm text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out mt-6">
+                    <div id="loading-spinner" class="loading-ring mr-2"></div>
+                    Guardar Observación Completa
+                </button>
+            </form>
+        </div>
+
+        <!-- Sección de Entradas Guardadas y Filtro (Mantenida sin cambios) -->
+        <div class="bg-white p-6 rounded-xl shadow-lg">
+            <h2 class="text-xl font-semibold text-gray-700 mb-4">Mis Entradas de Campo</h2>
+
+            <div class="mb-4">
+                <input type="text" id="filter-input" placeholder="Filtrar por palabra clave o etiqueta..."
+                    class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm p-2 border focus:ring-indigo-500 focus:border-indigo-500"
+                    oninput="filterEntries()">
+            </div>
+
+            <div id="entries-list" class="space-y-4">
+                <!-- Las entradas se renderizarán aquí -->
+                <p id="loading-entries" class="text-center text-gray-500">Cargando entradas...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module" src="app.js"></script>
+
+</body>
+
+</html>
